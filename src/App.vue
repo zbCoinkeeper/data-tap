@@ -1,18 +1,21 @@
 <template>
   <div id="app-wrapper">
     <div id="app">
-      <div class="content" style="margin-right:100px">
+      <div class="entity">
+        <div>实体1</div>
+        <GroupBox v-if="entityif1" :entityTypes="entityTypesArr1" @getCheckValue="getCheckValue1" />
+      </div>
+      <div class="entity">
+        <div>实体2</div>
+        <GroupBox v-if="entityif2" :entityTypes="entityTypesArr2" @getCheckValue="getCheckValue2" />
+      </div>
+      <div class="entity">
+        <div>实体关系</div>
+        <GroupBox v-if="relation" :entityTypes="relationShipArr" @getCheckValue="getCheckValue3" />
+      </div>
+    </div>
+    <div class="content" style="margin-right:100px">
         <SingWord v-for="word in words" :key="word.id" :word="word" />
-      </div>
-      <div class="content">
-        <GroupBox :entityTypes="entityTypesArr1" @getCheckValue="getCheckValue1" />
-      </div>
-      <div class="content">
-        <GroupBox :entityTypes="entityTypesArr2" @getCheckValue="getCheckValue2" />
-      </div>
-      <div class="content">
-        <GroupBox :entityTypes="relationShipArr" @getCheckValue="getCheckValue3" />
-      </div>
     </div>
     <div class="action" style="margin-top:50px">
       <Button type="primary" @click="submit">提交</Button>
@@ -25,7 +28,11 @@
 <script>
 import GroupBox from "./components/EntityTypeBox.vue";
 import SingWord from "./components/SingWord.vue";
-import { Button, Input } from "element-ui";
+import { Button, Input, MessageBox, Message } from "element-ui";
+import Vue from "vue";
+
+Vue.prototype.$prompt = MessageBox.prompt;
+Vue.prototype.$message = Message;
 
 export default {
   name: "app",
@@ -42,12 +49,54 @@ export default {
       entityTypesArr2: [],
       relationShipArr: [],
       words: [],
-      name: ""
+      name: "",
+      entityif1: true,
+      entityif2: true,
+      relation: true
     };
   },
   mounted() {
+    let that = this;
+    let develop=false
+    if(!develop){
+      this.$ip="http://106.52.211.35:8089"
+      this.$path=["/label/raw/types","/label/raw/getSentence","/label/raw/add"]
+      let temp=this.$path.map((item)=>{
+         return this.$ip+item
+      })
+      this.$path=temp
+    }else{
+      this.$path=["/raw/types","/raw/getSentence","/raw/add"]
+    }
+
+    function open() {
+      that
+        .$prompt("请输入姓名", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          inputPattern: /\S/,
+          inputErrorMessage: "姓名不能为空"
+        })
+        .then(({ value }) => {
+          that.$message({
+            type: "success",
+            message: "你的名字是: " + value
+          });
+          that.name = value;
+          that.getSen();
+        })
+        .catch(() => {
+          that.$message({
+            type: "info",
+            message: "请输入姓名"
+          });
+          open();
+        });
+    }
+    open();
+
     this.axios
-      .get("/raw/types", {
+      .get(this.$path[0], {
         params: {
           param: "body"
         }
@@ -58,7 +107,7 @@ export default {
       });
 
     this.axios
-      .get("/raw/types", {
+      .get(this.$path[0], {
         params: {
           param: "relation"
         }
@@ -66,12 +115,11 @@ export default {
       .then(res => {
         this.relationShipArr = res.data.data;
       });
-    this.getSen();
   },
   methods: {
     getSen() {
       this.axios
-        .post("/raw/getSentence", {
+        .post(this.$path[1], {
           novel: false,
           userName: this.name
         })
@@ -93,7 +141,7 @@ export default {
         });
     },
     submit() {
-     let num = 0;
+      let num = 0;
       let wordId = [];
       this.words.forEach(item => {
         if (item.isCheck) {
@@ -114,17 +162,16 @@ export default {
         alert("必须填写姓名");
         return;
       }
-       if ((!this.name1)||(!this.name2)||(!this.relation)) {
+      if (!this.name1 || !this.name2 || !this.relation) {
         alert("必须选择实体类型以及关系");
         return;
       }
-      wordId.sort(((a,b)=>{
-        return a-b
-      }));
-      console.log(wordId)
+      wordId.sort((a, b) => {
+        return a - b;
+      });
       let that = this;
       this.axios
-        .post("/raw/add", {
+        .post(this.$path[2], {
           headEnd: wordId[1],
           headOffset: wordId[0],
           headType: that.name1,
@@ -143,17 +190,25 @@ export default {
           userName: that.name
         })
         .then(res => {
-          alert("提交成功")
           console.log(res);
+          this.entityif1 = false;
+          this.entityif2 = false;
+          this.relation = false;
+          this.$nextTick(() => {
+            this.entityif1 = true;
+            this.entityif2 = true;
+            this.relation = true;
+          });
           this.getSen();
-        }).catch((err)=>{
-          alert(err)
+        })
+        .catch(err => {
+          alert(err);
         });
     },
-    useless(){
+    useless() {
       let that = this;
       this.axios
-        .post("/raw/add", {
+        .post(this.$path[2], {
           headEnd: 0,
           headOffset: 0,
           headType: that.name1,
@@ -174,8 +229,9 @@ export default {
         .then(res => {
           console.log(res);
           this.getSen();
-        }).catch((err)=>{
-          alert(err)
+        })
+        .catch(err => {
+          alert(err);
         });
     },
     getCheckValue1(name) {
@@ -197,23 +253,24 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
   display: flex;
+  justify-content: center;
 }
 
 .content {
-  flex-basis: 300px;
+  margin-top: 50px;
   display: flex;
-  justify-content:flex-start;
+  justify-content: center;
   align-items: center;
-  width: 300px;
   flex-wrap: wrap;
 }
 
-.action{
+.entity {
+  margin: 0 70px;
+}
+
+.action {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
-
-
 </style>

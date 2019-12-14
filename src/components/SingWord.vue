@@ -1,5 +1,5 @@
 <template>
-    <div class="wrapper">
+    <div class="wrapper" :class="{'word-color':word.isCheck}">
         {{word.content}}
         <input type="checkbox" 
             v-model="word.isCheck"
@@ -25,6 +25,10 @@ export default {
         flex-direction: column;
         justify-content: center;
         align-items: center;
+    }
+
+    .word-color{
+        color:#599ef8
     }
 </style>
 

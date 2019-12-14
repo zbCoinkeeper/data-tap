@@ -16,7 +16,7 @@ import {Radio,RadioGroup} from 'element-ui';
 export default {
     data(){
         return {
-           radio:"鲁迅"
+           radio:""
         }
     },
     props:{
@@ -44,6 +44,7 @@ export default {
         border:1px solid gray;
         border-radius: 4px;
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+         align-items: flex-start;
     }
     .item{
         margin: 10px
