@@ -20,7 +20,15 @@
     <div class="action" style="margin-top:50px">
       <Button type="primary" @click="submit">提交</Button>
       <Button type="warning" @click="useless">该数据无法标注</Button>
-      <Input v-model="name" placeholder="请输入姓名" style="width:100px;margin-left:100px" />
+      <Button type="info" @click="notKnow">我不知道该怎么标注</Button>
+      <Popover
+          placement="top-start"
+          style="width:100px;margin-left:10px"
+          trigger="click">
+          <img src="./assets/help.jpeg" alt="图片">
+          <Button slot="reference">点击查看帮助</Button>
+      </Popover>
+      <Input v-model="name" placeholder="请输入姓名" style="width:100px;margin-left:50px" />
     </div>
   </div>
 </template>
@@ -28,7 +36,7 @@
 <script>
 import GroupBox from "./components/EntityTypeBox.vue";
 import SingWord from "./components/SingWord.vue";
-import { Button, Input, MessageBox, Message } from "element-ui";
+import { Button, Input, MessageBox, Message, Popover } from "element-ui";
 import Vue from "vue";
 
 Vue.prototype.$prompt = MessageBox.prompt;
@@ -40,7 +48,8 @@ export default {
     GroupBox,
     SingWord,
     Button,
-    Input
+    Input,
+    Popover
   },
 
   data() {
@@ -57,16 +66,20 @@ export default {
   },
   mounted() {
     let that = this;
-    let develop=false
-    if(!develop){
-      this.$ip="http://106.52.211.35:8089"
-      this.$path=["/label/raw/types","/label/raw/getSentence","/label/raw/add"]
-      let temp=this.$path.map((item)=>{
-         return this.$ip+item
-      })
-      this.$path=temp
-    }else{
-      this.$path=["/raw/types","/raw/getSentence","/raw/add"]
+    let develop = true;
+    if (!develop) {
+      this.$ip = "http://106.52.211.35:8089";
+      this.$path = [
+        "/label/raw/types",
+        "/label/raw/getSentence",
+        "/label/raw/add"
+      ];
+      let temp = this.$path.map(item => {
+        return this.$ip + item;
+      });
+      this.$path = temp;
+    } else {
+      this.$path = ["/raw/types", "/raw/getSentence", "/raw/add"];
     }
 
     function open() {
@@ -214,6 +227,35 @@ export default {
           headType: that.name1,
           rawSentence: {
             flag: "USELESS",
+            id: that.id,
+            sentence: that.sentence,
+            userName: that.name,
+            version: that.version
+          },
+          relation: that.relation,
+          tailEnd: 0,
+          tailOffset: 0,
+          tailType: that.name2,
+          userIp: "string",
+          userName: that.name
+        })
+        .then(res => {
+          console.log(res);
+          this.getSen();
+        })
+        .catch(err => {
+          alert(err);
+        });
+    },
+    notKnow() {
+      let that = this;
+      this.axios
+        .post(this.$path[2], {
+          headEnd: 0,
+          headOffset: 0,
+          headType: that.name1,
+          rawSentence: {
+            flag: "NOTKNOW",
             id: that.id,
             sentence: that.sentence,
             userName: that.name,

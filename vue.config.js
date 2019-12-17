@@ -1,4 +1,5 @@
 module.exports = {  
+    assetsDir:"label_dist",
     devServer: {
       proxy: {
           //配置跨域
