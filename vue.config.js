@@ -1,4 +1,4 @@
-module.exports = {  
+module.exports = {
     assetsDir:"label_dist",
     devServer: {
       proxy: {
@@ -7,9 +7,7 @@ module.exports = {
             target: "http://106.52.211.35:8089",
             ws:true,
             changOrigin:true,
-            pathRewrite:{
-                '^/api':''
-            }
+            pathRewrite: {}
         }
       }
     }

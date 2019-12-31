@@ -25,10 +25,13 @@
           placement="top-start"
           style="width:100px;margin-left:10px"
           trigger="click">
-          <img src="./assets/help.jpeg" alt="图片">
+          <img src="./assets/help.png" alt="图片" style="width:700px;height: 350px">
           <Button slot="reference">点击查看帮助</Button>
       </Popover>
       <Input v-model="name" placeholder="请输入姓名" style="width:100px;margin-left:50px" />
+    </div>
+    <div style="display: flex;justify-content: center;align-items: center;margin-top:30px">
+      {{`${name}已经标记了${tappedDataNum}条数据，其中有用数据${usefulDataNum}条`}}
     </div>
   </div>
 </template>
@@ -61,12 +64,14 @@ export default {
       name: "",
       entityif1: true,
       entityif2: true,
-      relation: true
+      relation: true,
+      tappedDataNum:0,
+      usefulDataNum:0,
     };
   },
   mounted() {
     let that = this;
-    let develop = true;
+    let develop = false;
     if (!develop) {
       this.$ip = "http://106.52.211.35:8089";
       this.$path = [
@@ -141,6 +146,8 @@ export default {
           this.sentence = sentence;
           this.id = res.data.data.rawSentence.id;
           this.version = res.data.data.rawSentence.version;
+          this.tappedDataNum=res.data.data.userCount.raw;
+          this.usefulDataNum=res.data.data.userCount.useful;
           console.log(sentence);
           let words = sentence.split("");
           let wordObject = words.map((item, index) => {
@@ -284,7 +291,7 @@ export default {
     },
     getCheckValue3(name) {
       this.relation = name;
-    }
+    },
   }
 };
 </script>
